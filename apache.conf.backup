@@ -1,0 +1,86 @@
+# To be placed in the /etc/apache2/sites-available/ Directory
+# Look into place holders for content that will need to be changed by "sed"
+
+# PLACE HOLDERS
+
+# ServerName = SERVER_NAME # greenhat.info
+# ServerAdmin = SERVER_ADMIN # email address
+# Redirect = SERVER_IP #
+# ErrorLog Custom = ELCUSTOM #
+# CustomLog access = ALCUSTOM #
+# SSLCertificateFile = CERT.CRT # after path: /etc/ssl/certs/
+# SSLCertificateKeyFile = CERT.KEY # after path: /etc/ssl/private/
+
+
+<VirtualHost *:80>
+
+    ServerName SERVER_NAME
+    ServerAdmin SERVER_ADMIN
+
+    # Redirect Requests to SSL
+    Redirect permanent "/" "https://SERVER_IP/"
+
+    ErrorLog ${APACHE_LOG_DIR}/ELCUSTOM.error.log
+    CustomLog ${APACHE_LOG_DIR}/ALCUSTOM.access.log combined
+
+</VirtualHost>
+
+<IfModule mod_ssl.c>
+
+    <VirtualHost _default_:443>
+
+            ServerName SERVER_NAME
+            ServerAdmin SERVER_ADMIN
+            DocumentRoot /var/www/html/mediawiki
+            # According MWiki Manual:Security
+            php_flag register_globals off
+
+            ErrorLog ${APACHE_LOG_DIR}/ELCUSTOM.error.log
+            CustomLog ${APACHE_LOG_DIR}/ALCUSTOM.access.log combined
+
+            SSLEngine on
+            SSLCertificateFile /etc/ssl/certs/CERT.CRT
+            SSLCertificateKeyFile  /etc/ssl/private/CERT.KEY
+            # need to find out what SSLCertificateChainFile is? explain is in the default-ssl.conf file.
+            #SSLCertificateChainFile /etc/ssl/certs/example.com.root-bundle.crt
+
+            <FilesMatch "\.(cgi|shtml|phtml|php)$">
+                    SSLOptions +StdEnvVars
+            </FilesMatch>
+
+            <Directory /usr/lib/cgi-bin>
+                    SSLOptions +StdEnvVars
+            </Directory>
+
+            <Directory /var/www/html/wikimedia>
+                    Options None FollowSymLinks
+                    #Allow .htaccess
+                    AllowOverride All
+                    Require all granted
+                    <IfModule security2_module>
+                            SecRuleEngine Off
+                            # or disable only problematic rules
+                    </IfModule>
+            </Directory>
+
+            # According to MWiki Manual:Security
+            <Directory /var/www/html/wikimedia/images>
+                    # Ignore .htaccess files
+                    AllowOverride None
+                    # Serve HTML as plaintext, don't execute SHTML
+                    AddType text/plain .html .htm .shtml .php .phtml .php5
+                    # Don't run arbitrary PHP code.
+                    php_admin_flag engine off
+                    # If you've other scripting languages, disable them too.
+            </Directory>
+
+            #According to MWiki Manual:Security
+            <Directory /var/www/html/wikimedia/images/deleted>
+                    Deny from all
+                    AllowOverride AuthConfig Limit
+                    Require local
+            </Directory>
+
+    </VirtualHost>
+
+</IfModule>
