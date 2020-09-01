@@ -316,7 +316,7 @@ ufw allow 443/tcp
 # Message with database details and ip for website
 
 printf "Please visit on a web browser the site $SERVER_IP_VAR to Complete your mediawiki install.\n"
-printf '\e[1;31m%s\e[0m\n' "\tVisit $SERVER_IP_VAR on browser"
+printf '\t\e[1;31m%s\e[0m\n' "Visit $SERVER_IP_VAR on browser"
 printf "\tYour Database name = $DATANAME\n"
 printf "\tYour Database username = $USERBASE\n"
 printf "\tYour Database PassWord for $USERBASE = $DATAPASS\n"
